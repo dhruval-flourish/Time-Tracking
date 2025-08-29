@@ -337,13 +337,13 @@ app.get('/api/jobs', authenticateToken, async (req, res) => {
   }
 });
 
-// Get employees from Spire API (Protected route)
-app.get('/api/employees', authenticateToken, async (req, res) => {
+// Get employees from Spire API (Public route for login page)
+app.get('/api/employees', async (req, res) => {
   try {
     logger.info('Fetching employees from Spire API', {
       endpoint: '/api/employees',
       method: 'GET',
-      userId: req.user?.emp_code || req.user?.empcode || 'anonymous',
+      userId: 'anonymous',
     });
 
     const employees = await fetchEmployees();
