@@ -1,60 +1,22 @@
-import express from 'express';
-import cors from 'cors';
+// Minimal API for Vercel deployment testing
+export default function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-const app = express();
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Time Tracking API is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
-
-// Simple test endpoint
-app.get('/api/test', (req, res) => {
-  res.json({
+  // Simple response
+  res.status(200).json({
     success: true,
     message: 'API is working!',
-    data: {
-      status: 'operational',
-      endpoints: ['/api/health', '/api/test']
-    }
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    url: req.url
   });
-});
-
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Time Tracking API',
-    version: '1.0.0',
-    endpoints: ['/api/health', '/api/test']
-  });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Endpoint not found'
-  });
-});
-
-// Error handling middleware
-app.use((error, req, res, next) => {
-  console.error('Error:', error);
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error'
-  });
-});
-
-// Export for Vercel
-export default app;
+}
