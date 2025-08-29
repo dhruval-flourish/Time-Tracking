@@ -2,11 +2,11 @@
   "name": "flourish-backend",
   "version": "1.0.0",
   "description": "Flourish UI Backend API - Time tracking and job management system",
-  "main": "api/index.js",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node api/index.js",
-    "dev": "nodemon api/index.js",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
     "server": "node server.js",
     "vercel-build": "echo 'Vercel build completed'"
   },
