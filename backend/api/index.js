@@ -11,7 +11,29 @@ import logger, { logRequest, logError, logDatabase, logApiCall, logAuth } from '
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = process.env.ALLOWED_ORIGINS 
+      ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+      : ['http://localhost:3000'];
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: process.env.ALLOWED_METHODS 
+    ? process.env.ALLOWED_METHODS.split(',').map(method => method.trim())
+    : ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: process.env.ALLOWED_HEADERS
+    ? process.env.ALLOWED_HEADERS.split(',').map(header => header.trim())
+    : ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(express.json());
 
 // HTTP request logging middleware (only in development)
