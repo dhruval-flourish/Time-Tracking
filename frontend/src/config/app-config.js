@@ -13,9 +13,9 @@ const config = {
   backend: {
     // Development (localhost)
     development: {
-      baseUrl: 'https://time-tracking-vyoz7soim-chaos-academy.vercel.app/',
+      baseUrl: 'http://localhost:3001',
       apiPath: '/api',
-      fullUrl: 'https://time-tracking-vyoz7soim-chaos-academy.vercel.app/api'
+      fullUrl: 'http://localhost:3001/api'
     },
     // Production (your domain)
     production: {
