@@ -23,31 +23,12 @@ logger.info('Starting server', {
 });
 
 // Middleware
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = process.env.ALLOWED_ORIGINS 
-      ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-      : ['http://localhost:3000'];
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+app.use(cors({
+  origin: 'http://localhost:3000',
   credentials: true,
-  methods: process.env.ALLOWED_METHODS 
-    ? process.env.ALLOWED_METHODS.split(',').map(method => method.trim())
-    : ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: process.env.ALLOWED_HEADERS
-    ? process.env.ALLOWED_HEADERS.split(',').map(header => header.trim())
-    : ['Content-Type', 'Authorization', 'X-Requested-With']
-};
-
-app.use(cors(corsOptions));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(express.json());
 
 // HTTP request logging middleware
@@ -501,25 +482,9 @@ app.get('/api/jobs', async (req, res) => {
 
 // Handle preflight OPTIONS request for employees endpoint
 app.options('/api/employees', (req, res) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-    : ['http://localhost:3000'];
-  
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  
-  const allowedMethods = process.env.ALLOWED_METHODS 
-    ? process.env.ALLOWED_METHODS.split(',').map(method => method.trim())
-    : ['GET', 'OPTIONS'];
-    
-  const allowedHeaders = process.env.ALLOWED_HEADERS
-    ? process.env.ALLOWED_HEADERS.split(',').map(header => header.trim())
-    : ['Content-Type', 'Authorization', 'X-Requested-With'];
-  
-  res.header('Access-Control-Allow-Methods', allowedMethods.join(', '));
-  res.header('Access-Control-Allow-Headers', allowedHeaders.join(', '));
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.status(200).end();
 });
 
