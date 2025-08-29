@@ -1,47 +1,23 @@
-// 🚀 Centralized App Configuration
-// Change these URLs once and they work everywhere!
+// 🚀 Backend Configuration
+// Simple, focused configuration for the backend server
 
 const config = {
   // 🌐 Environment Detection
   isDevelopment: process.env.NODE_ENV === 'development',
   isProduction: process.env.NODE_ENV === 'production',
   
-  // 📱 Mobile Detection
-  isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-  
   // 🔗 Backend API Configuration
   backend: {
-    // Development (localhost)
-    development: {
-      baseUrl: 'http://localhost:3001',
-      apiPath: '/api',
-      fullUrl: 'http://localhost:3001/api'
-    },
-    // Production (your domain)
-    production: {
-      baseUrl: 'https://timetracking-xi.vercel.app', // Your actual Vercel URL
-      apiPath: '/api',
-      fullUrl: 'https://timetracking-xi.vercel.app/api' // Your actual Vercel URL
-    }
-  },
-  
-  // 🌍 Frontend Configuration
-  frontend: {
-    // Development (localhost)
-    development: {
-      baseUrl: 'http://localhost:3000',
-      fullUrl: 'http://localhost:3000'
-    },
-    // Production (your domain)
-    production: {
-      baseUrl: 'https://timetracking-xi.vercel.app', // Your Vercel URL
-      fullUrl: 'https://timetracking-xi.vercel.app' // Your Vercel URL
+    port: process.env.PORT || 3001,
+    cors: {
+      origins: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+      methods: process.env.ALLOWED_METHODS?.split(',') || ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      headers: process.env.ALLOWED_HEADERS?.split(',') || ['Content-Type', 'Authorization', 'X-Requested-With']
     }
   },
   
   // 🗄️ Database Configuration
   database: {
-    // These will be overridden by environment variables in production
     host: process.env.DB_HOST || '172.16.70.25',
     port: process.env.DB_PORT || 5432,
     database: process.env.DB_NAME || 'timetracking_main',
@@ -59,48 +35,26 @@ const config = {
   // 🏢 Company Information
   company_name: process.env.COMPANY_NAME || 'Homestead',
   
-  // 📱 Mobile Network Settings
-  mobile: {
-    timeout: 30000, // 30 seconds for mobile
-    retryAttempts: 3,
-    retryDelay: 1000
+  // 🔑 JWT Configuration
+  jwt: {
+    secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-here',
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h'
   }
 };
 
 // 🎯 Helper Functions
 export const getBackendUrl = () => {
   const env = config.isDevelopment ? 'development' : 'production';
-  return config.backend[env].fullUrl;
-};
-
-export const getFrontendUrl = () => {
-  const env = config.isDevelopment ? 'development' : 'production';
-  return config.frontend[env].fullUrl;
+  return `http://localhost:${config.backend.port}`;
 };
 
 export const getApiUrl = (endpoint = '') => {
   const backendUrl = getBackendUrl();
-  return `${backendUrl}${endpoint}`;
+  return `${backendUrl}/api${endpoint}`;
 };
 
 export const getSpireUrl = (endpoint = '') => {
   return `${config.spire.baseUrl}${endpoint}`;
-};
-
-// 📱 Mobile Network Helpers
-export const getMobileTimeout = () => {
-  return config.mobile.timeout;
-};
-
-export const getMobileRetryConfig = () => {
-  return {
-    attempts: config.mobile.retryAttempts,
-    delay: config.mobile.retryDelay
-  };
-};
-
-export const isMobileDevice = () => {
-  return config.isMobile;
 };
 
 // 📋 Export everything

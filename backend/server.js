@@ -6,7 +6,7 @@ import { UserStore } from './user-store.js';
 import { authenticateToken, generateToken } from './middleware/auth.js';
 import { fetchJobs, fetchEmployees, fetchJobCostingAccounts } from './api-fetcher.js';
 import appConfig, { getBackendUrl, getApiUrl } from './config/app-config.js';
-import logger, { logRequest, logError, logDatabase, logApiCall, logAuth } from './logger.js';
+import logger, { logRequest, logError, logDatabase, logApiCall, logAuth, stream } from './logger.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -32,7 +32,7 @@ app.use(cors({
 app.use(express.json());
 
 // HTTP request logging middleware
-app.use(morgan('combined', { stream: logger.stream }));
+app.use(morgan('combined', { stream: stream }));
 
 // Custom request logging middleware
 app.use((req, res, next) => {
