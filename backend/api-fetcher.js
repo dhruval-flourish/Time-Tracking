@@ -5,9 +5,9 @@ import logger from './logger.js';
 // Browser-compatible API fetcher
 // Add timeout and retry configuration
 const API_CONFIG = {
-  timeout: 30000, // 30 seconds
-  retries: 3,
-  retryDelay: 1000 // 1 second
+  timeout: 45000, // 45 seconds (increased for Spire API)
+  retries: 2,
+  retryDelay: 2000 // 2 seconds
 };
 
 // Helper function for making HTTP requests with retry logic
