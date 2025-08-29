@@ -71,6 +71,16 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Simple test endpoint for employees (no external API calls)
+app.get('/api/employees-test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Employees endpoint is working',
+    timestamp: new Date().toISOString(),
+    test: true
+  });
+});
+
 // ===== TIME ENTRIES ENDPOINTS =====
 
 // Get all time entries (Protected route)
@@ -346,7 +356,14 @@ app.get('/api/employees', async (req, res) => {
       userId: 'anonymous',
     });
 
-    const employees = await fetchEmployees();
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout after 30 seconds')), 30000);
+    });
+
+    const employeesPromise = fetchEmployees();
+    
+    const employees = await Promise.race([employeesPromise, timeoutPromise]);
     
     logApiCall('/api/employees', 'GET', Date.now(), true, { 
       count: employees.length,
@@ -359,13 +376,18 @@ app.get('/api/employees', async (req, res) => {
       count: employees.length 
     });
   } catch (error) {
+    logger.error('Error in /api/employees:', error);
     logApiCall('/api/employees', 'GET', Date.now(), false, { 
       error: error.message
     });
     logError(error, { context: 'API endpoint', endpoint: '/api/employees' });
+    
+    // Return a more detailed error response
     res.status(500).json({ 
       success: false,
-      error: error.message 
+      error: error.message,
+      details: 'Failed to fetch employees from Spire API',
+      timestamp: new Date().toISOString()
     });
   }
 });
