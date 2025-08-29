@@ -5,13 +5,11 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "server": "node server.js",
-    "build": "echo '🔨 Building for production...'",
-    "build:prod": "echo '🔨 Building for production...'",
-    "deploy": "echo '🚀 Ready for EC2 deployment'"
-  },
+  "start": "node server.js",
+  "dev": "nodemon server.js",
+  "build": "npm ci --only=production && echo '✅ Build completed'",
+  "deploy": "npm run build && npm start"
+},
   "keywords": [
     "time-tracking",
     "job-management",
