@@ -480,97 +480,32 @@ app.get('/api/jobs', async (req, res) => {
   }
 });
 
-// Handle preflight OPTIONS request for employees endpoint
-app.options('/api/employees', (req, res) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.status(200).end();
-});
-
-// Get employees from SpireLAN API
+// Get employees endpoint
 app.get('/api/employees', async (req, res) => {
-  const startTime = Date.now();
-  
   try {
     const searchTerm = req.query.search || null;
-    
-    logger.info('Fetching employees from Spire API', {
-      endpoint: '/api/employees',
-      method: 'GET',
-      searchTerm,
-      userId: req.user?.emp_code || req.user?.empcode || 'anonymous',
-    });
-    
     const employees = await fetchEmployees(searchTerm);
-    const duration = Date.now() - startTime;
     
-    if (employees && employees.length > 0) {
-      // Transform SpireLAN employee data to match our frontend expectations
-      const transformedEmployees = employees.map(employee => ({
-        id: employee.employeeNo || employee.id,
-        employeeNo: employee.employeeNo,
-        name: employee.name || 'Unknown Employee',
-        role: employee.role || 'Employee',
-        status: employee.status || 'Unknown'
-      }));
-      
-      logApiCall('/api/employees', 'GET', duration, true, { 
-        count: transformedEmployees.length,
-        searchTerm,
-        source: 'Spire API'
-      });
-      
-      logger.info('Employees fetched successfully', {
-        count: transformedEmployees.length,
-        duration: `${duration}ms`,
-        searchTerm,
-        source: 'Spire API',
-      });
-      
-      res.json({
-        success: true,
-        records: transformedEmployees,
-        count: transformedEmployees.length
-      });
-    } else {
-      logApiCall('/api/employees', 'GET', duration, true, { 
-        count: 0,
-        searchTerm,
-        source: 'Spire API'
-      });
-      
-      logger.info('No employees found', {
-        duration: `${duration}ms`,
-        searchTerm,
-        source: 'Spire API',
-      });
-      
-      res.json({
-        success: true,
-        records: [],
-        count: 0
-      });
-    }
+    // Transform employee data
+    const transformedEmployees = employees?.map(employee => ({
+      id: employee.employeeNo || employee.id,
+      employeeNo: employee.employeeNo,
+      name: employee.name || 'Unknown Employee',
+      role: employee.role || 'Employee',
+      status: employee.status || 'Unknown'
+    })) || [];
+    
+    res.json({
+      success: true,
+      records: transformedEmployees,
+      count: transformedEmployees.length
+    });
+    
   } catch (error) {
-    const duration = Date.now() - startTime;
-    
-    logApiCall('/api/employees', 'GET', duration, false, { 
-      error: error.message,
-      searchTerm: req.query.search || null,
-      source: 'Spire API'
-    });
-    
-    logError(error, { 
-      context: 'Employees API endpoint',
-      endpoint: '/api/employees',
-      method: 'GET',
-      searchTerm: req.query.search || null,
-    });
-    
+    logger.error('Employees API error', { error: error.message });
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to fetch employees from SpireLAN API'
+      error: 'Failed to fetch employees'
     });
   }
 });
