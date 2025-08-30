@@ -27,9 +27,9 @@ const config = {
   
   // 🔐 Spire API Configuration
   spire: {
-    baseUrl: process.env.SPIRE_BASE_URL || 'https://clean-invoice-3801.spirelan.com:10880',
-    company: process.env.SPIRE_COMPANY || 'fmc_hvac',
-    auth: process.env.SPIRE_AUTH || 'Basic RGhydXZhbDpEaHJ1dmFsMTIzJCVe'
+    baseUrl: process.env.SPIRE_BASE_URL || 'https://blue-decimal-2893.spirelan.com:10880',
+    company: process.env.SPIRE_COMPANY || 'inspirehealth',
+    auth: process.env.SPIRE_AUTH || 'Basic RGhydXZhbDpEaHJ1dmFsQDMwMDY='
   },
   
   // 🏢 Company Information
