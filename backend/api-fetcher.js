@@ -246,37 +246,49 @@ async function fetchJobs(searchTerm = null) {
 
 async function fetchEmployees(searchTerm = null) {
   try {
-    // Use centralized configuration
     const BASE_URL = getSpireUrl();
     const COMPANY = config.spire.company;
     const AUTH_HEADER = {
       authorization: config.spire.auth,
     };
-    
-    // Use active employees filter by default
-    let filterObj = { status: "A" }; // Filter for active employees only
-    
+
+    // Default filter: active employees
+    let filterObj = { status: "A" };
+
+    // Add search filter if provided
     if (searchTerm && searchTerm.trim().length >= 2) {
       filterObj["$or"] = [
-        { "employeeNo": { "$like": `%${searchTerm.trim()}%` } },
-        { "name": { "$like": `%${searchTerm.trim()}%` } }
+        { employeeNo: { $like: `%${searchTerm.trim()}%` } },
+        { name: { $like: `%${searchTerm.trim()}%` } }
       ];
     }
-    
-    const allEmployees = [];
-    const limit = 100; // API limit per page
-    let totalCount = null; // Will store the actual total from API
 
+    const allEmployees = [];
+    const limit = 100;
     let offset = 0;
     let hasMore = true;
     let pageCount = 0;
-    
+    let totalCount = null;
 
-    
-    // Fetch employees with pagination
+    // Helper: fetch page with retry
+    async function fetchPageWithRetry(url, headers, retries = 2) {
+      for (let attempt = 1; attempt <= retries + 1; attempt++) {
+        try {
+          const response = await makeRequest(url, { headers });
+          return response;
+        } catch (err) {
+          if (attempt <= retries) {
+            logger.warn(`Retry ${attempt}/${retries} for ${url}: ${err.message}`);
+            await new Promise(r => setTimeout(r, 1000)); // wait 1s before retry
+          } else {
+            throw err;
+          }
+        }
+      }
+    }
+
     while (hasMore) {
       pageCount++;
-      
       const filterStr = encodeURIComponent(JSON.stringify(filterObj));
       const employeesUrl = `${BASE_URL}/api/v2/companies/${COMPANY}/payroll/employees?filter=${filterStr}&limit=${limit}&offset=${offset}`;
 
@@ -287,21 +299,10 @@ async function fetchEmployees(searchTerm = null) {
       }
 
       try {
-        const response = await makeRequest(employeesUrl, {
-          headers: AUTH_HEADER,
-        });
-
-        if (pageCount === 1) {
-          logger.debug('Response status', {
-            status: response.status,
-            page: pageCount,
-          });
-        }
-
+        const response = await fetchPageWithRetry(employeesUrl, AUTH_HEADER, 2);
         const employeesData = await response.json();
         const employees = employeesData.records || [];
-        
-        // Get total count from first page
+
         if (pageCount === 1) {
           totalCount = employeesData.count || 0;
           logger.info(`Total employees available: ${totalCount}`);
@@ -314,16 +315,16 @@ async function fetchEmployees(searchTerm = null) {
         } else {
           allEmployees.push(...employees);
           offset += limit;
-          
-          logger.info(`Page ${pageCount}: Got ${employees.length} employees, Total so far: ${allEmployees.length}`);
-          
+
+          logger.info(`Page ${pageCount}: got ${employees.length} employees, total fetched: ${allEmployees.length}`);
+
           // Stop if we've fetched all available records
-          if (allEmployees.length >= totalCount) {
+          if (totalCount && allEmployees.length >= totalCount) {
             hasMore = false;
-            logger.info(`Stopped: Fetched ${allEmployees.length} >= ${totalCount} total`);
+            logger.info(`Stopped: Fetched ${allEmployees.length} >= total ${totalCount}`);
           }
-          
-          // Also stop if we got fewer records than the limit (last page)
+
+          // Stop if last page had fewer records than limit
           if (employees.length < limit) {
             hasMore = false;
             logger.info(`Stopped: Last page had ${employees.length} < ${limit} records`);
@@ -337,16 +338,16 @@ async function fetchEmployees(searchTerm = null) {
         });
         logger.error('Stopping employee fetch due to error');
         hasMore = false;
-        break; // Stop on ANY error
+        break;
       }
     }
 
-    // Ensure we don't return more than the total count
+    // Trim to total count if needed
     if (totalCount && allEmployees.length > totalCount) {
       logger.warn(`Trimming from ${allEmployees.length} to ${totalCount} employees`);
-      allEmployees.splice(totalCount);
+      allEmployees.length = totalCount;
     }
-    
+
     logger.info(`Fetched ${allEmployees.length} employees from ${pageCount} pages`);
     return allEmployees;
   } catch (error) {
